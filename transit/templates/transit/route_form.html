@@ -1,0 +1,65 @@
+{% extends "transit/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form two-col" id="routeForm">{% csrf_token %}
+  <div>
+    {% include "transit/_form_fields.html" %}
+    <h2>Stops</h2>
+    <ol id="stopList" class="stop-list"></ol>
+    <button class="btn">Save route</button>
+  </div>
+  <div>
+    <div class="toolbar">
+      <span>Mode:</span>
+      <label><input type="radio" name="mode" value="line" checked> Line</label>
+      <label><input type="radio" name="mode" value="stops"> Stops</label>
+      <button type="button" class="btn small ghost" id="undo">↶ Undo point</button>
+      <button type="button" class="btn small ghost" id="clear">Clear line</button>
+    </div>
+    <p class="hint">"Line": click along the streets in the order the bus drives.
+      "Stops": click where a stop is and type its name.</p>
+    <div id="map" class="editor-map"></div>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const pathInput = document.getElementById('id_path'), stopsInput = document.getElementById('id_stops');
+const colorInput = document.getElementById('id_color');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const parse = (v, d) => { try { return JSON.parse(v) || d; } catch { return d; } };
+let path = parse(pathInput.value, []), stops = parse(stopsInput.value, []);
+
+const map = makeMap('map');
+const line = L.polyline(path, {color: colorInput.value, weight: 5}).addTo(map);
+const vertexLayer = L.layerGroup().addTo(map), stopLayer = L.layerGroup().addTo(map);
+if (path.length > 1) map.fitBounds(line.getBounds(), {padding: [30, 30]});
+
+function render() {
+  line.setLatLngs(path).setStyle({color: colorInput.value});
+  vertexLayer.clearLayers();
+  path.forEach(p => L.circleMarker(p, {radius: 3, color: colorInput.value}).addTo(vertexLayer));
+  stopLayer.clearLayers();
+  stops.forEach((s, i) => L.circleMarker([s.lat, s.lng], {radius: 7, color: '#111', fillColor: '#fff', fillOpacity: 1})
+    .bindTooltip(`${i + 1}. ${esc(s.name)}`).addTo(stopLayer));
+  document.getElementById('stopList').innerHTML = stops.length
+    ? stops.map((s, i) => `<li>${esc(s.name)} <button type="button" class="linklike" data-i="${i}">✕</button></li>`).join('')
+    : '<p class="empty">No stops yet.</p>';
+  document.querySelectorAll('#stopList button').forEach(b => b.onclick = () => { stops.splice(+b.dataset.i, 1); render(); });
+  pathInput.value = JSON.stringify(path);
+  stopsInput.value = JSON.stringify(stops);
+}
+
+map.on('click', e => {
+  const pt = [+e.latlng.lat.toFixed(6), +e.latlng.lng.toFixed(6)];
+  if (document.querySelector('input[name=mode]:checked').value === 'line') path.push(pt);
+  else { const name = prompt('Stop name:'); if (name && name.trim()) stops.push({name: name.trim(), lat: pt[0], lng: pt[1]}); }
+  render();
+});
+document.getElementById('undo').onclick = () => { path.pop(); render(); };
+document.getElementById('clear').onclick = () => { if (confirm('Delete the whole line?')) { path = []; render(); } };
+colorInput.oninput = render;
+render();
+</script>
+{% endblock %}

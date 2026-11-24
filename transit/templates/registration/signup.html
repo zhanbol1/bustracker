@@ -1,0 +1,13 @@
+{% extends "transit/base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1>Sign up</h1>
+  <p class="hint">You can view the map without an account. An account lets you add your own marks: every mark has an author, and only the author can change it.</p>
+  <form method="post" class="form">{% csrf_token %}
+    {% include "transit/_form_fields.html" %}
+    <button class="btn">Create account</button>
+  </form>
+  <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+</div>
+{% endblock %}

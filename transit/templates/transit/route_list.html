@@ -1,0 +1,18 @@
+{% extends "transit/base.html" %}
+{% block title %}Routes{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Routes</h1>
+  {% if user.is_staff %}<a class="btn" href="{% url 'route_create' %}">+ New route</a>{% endif %}</div>
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Number, name or stop">
+  <button class="btn">Search</button>
+</form>
+<div class="cards">
+{% for r in routes %}
+  <a class="card" href="{% url 'route_detail' r.pk %}">
+    <div class="route-num" style="background:{{ r.color }}">{{ r.number }}</div>
+    <div><b>{{ r.name }}</b><br><small>Buses: {{ r.buses.count }}{% if not r.is_active %} · inactive{% endif %}</small></div>
+  </a>
+{% empty %}<p class="empty">No routes found.</p>{% endfor %}
+</div>
+{% endblock %}

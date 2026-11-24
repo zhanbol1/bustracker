@@ -1,0 +1,33 @@
+{% extends "transit/base.html" %}
+{% block title %}{% if mine %}My marks{% else %}Marks{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{% if mine %}My marks{% else %}User marks{% endif %}</h1>
+  {% if user.is_authenticated %}<a class="btn" href="{% url 'map' %}">+ Add on the map</a>{% endif %}
+</div>
+{% if not mine %}
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ params.q }}" placeholder="Search by name or description">
+  <select name="category">
+    <option value="">All categories</option>
+    {% for c in categories %}<option value="{{ c.id }}" {% if params.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="sort">
+    <option value="new" {% if params.sort == "new" %}selected{% endif %}>Newest first</option>
+    <option value="old" {% if params.sort == "old" %}selected{% endif %}>Oldest first</option>
+    <option value="title" {% if params.sort == "title" %}selected{% endif %}>By name</option>
+  </select>
+  <button class="btn">Search</button>
+</form>
+{% endif %}
+<div class="cards">
+{% for m in marks %}
+  <a class="card" href="{% url 'mark_detail' m.pk %}">
+    <div class="card-icon">{{ m.category.icon }}</div>
+    <div><b>{{ m.title }}</b><br><small>{{ m.category.name }} · {{ m.owner.username }} · {{ m.created_at|date:"d.m.Y" }}</small></div>
+  </a>
+{% empty %}
+  <p class="empty">{% if mine %}You have no marks yet. Click the map to add your first one.{% else %}Nothing matches your search.{% endif %}</p>
+{% endfor %}
+</div>
+{% endblock %}

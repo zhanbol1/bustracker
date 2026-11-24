@@ -1,0 +1,124 @@
+{% extends "transit/base.html" %}
+{% block body_class %}fullscreen{% endblock %}
+{% block main_class %}map-layout{% endblock %}
+{% block content %}
+<aside class="panel" id="panel">
+  <button class="panel-handle" id="panelToggle" aria-label="Collapse panel">▾ Routes and marks</button>
+  <div class="panel-body">
+    <h2>Route</h2>
+    <input type="search" id="routeSearch" placeholder="Number, name or stop…">
+    <div id="routeList" class="route-list"></div>
+
+    <h2>Marks</h2>
+    <label class="switch"><input type="checkbox" id="marksToggle" checked> Show marks</label>
+    <select id="categoryFilter">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c.id }}">{{ c }}</option>{% endfor %}
+    </select>
+    {% if user.is_authenticated %}
+      <p class="hint">Click the map to add a mark.</p>
+    {% else %}
+      <p class="hint"><a href="{% url 'login' %}">Log in</a> or <a href="{% url 'signup' %}">sign up</a> to add your own marks.</p>
+    {% endif %}
+  </div>
+</aside>
+<div id="map"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const IS_AUTH = {{ user.is_authenticated|yesno:"true,false" }};
+const map = makeMap('map');
+const selected = new Map();          // routeId -> {layer, busLayer}
+const marksLayer = L.layerGroup().addTo(map);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ---- Route list with search ----
+async function loadRoutes(q = '') {
+  const res = await fetch('/api/routes/?q=' + encodeURIComponent(q));
+  const {routes} = await res.json();
+  const list = document.getElementById('routeList');
+  if (!routes.length) { list.innerHTML = '<p class="empty">No routes found.</p>'; return; }
+  list.innerHTML = routes.map(r => `
+    <button class="route-chip ${selected.has(r.id) ? 'on' : ''}" data-id="${r.id}" style="--c:${esc(r.color)}">
+      <b>${esc(r.number)}</b> ${esc(r.name)}
+    </button>`).join('');
+  list.querySelectorAll('.route-chip').forEach(b => b.onclick = () => toggleRoute(+b.dataset.id, b));
+}
+let t; document.getElementById('routeSearch').oninput = e => { clearTimeout(t); t = setTimeout(() => loadRoutes(e.target.value), 250); };
+
+// ---- Show / hide a route ----
+async function toggleRoute(id, btn) {
+  if (selected.has(id)) {
+    const s = selected.get(id); map.removeLayer(s.layer); map.removeLayer(s.busLayer);
+    selected.delete(id); btn.classList.remove('on'); return;
+  }
+  const r = await (await fetch(`/api/routes/${id}/`)).json();
+  const layer = L.layerGroup().addTo(map);
+  const line = L.polyline(r.path, {color: r.color, weight: 5, opacity: .8}).addTo(layer);
+  r.stops.forEach(s => L.circleMarker([s.lat, s.lng], {radius: 5, color: r.color, fillColor: '#fff', fillOpacity: 1})
+    .bindTooltip(esc(s.name)).addTo(layer));
+  const busLayer = L.layerGroup().addTo(map);
+  selected.set(id, {layer, busLayer, route: r, markers: {}});
+  btn.classList.add('on');
+  map.fitBounds(line.getBounds(), {padding: [30, 30]});
+  refreshBuses();
+}
+
+// ---- Buses: poll the server every 3 seconds ----
+function busIcon(number, color, online) {
+  return L.divIcon({className: 'bus-marker', iconSize: [34, 22],
+    html: `<div class="bus-icon ${online ? '' : 'offline'}" style="background:${esc(color)}">${esc(number)}</div>`});
+}
+async function refreshBuses() {
+  for (const [id, s] of selected) {
+    const {buses} = await (await fetch(`/api/routes/${id}/buses/`)).json();
+    const seen = new Set();
+    buses.forEach(b => {
+      seen.add(b.bus_id);
+      const m = s.markers[b.bus_id];
+      if (m) m.setLatLng([b.lat, b.lng]);
+      else s.markers[b.bus_id] = L.marker([b.lat, b.lng], {icon: busIcon(s.route.number, s.route.color, b.online)})
+        .bindTooltip(`Route ${esc(s.route.number)} · ${esc(b.plate)}`).addTo(s.busLayer);
+    });
+    for (const busId in s.markers) if (!seen.has(+busId)) { s.busLayer.removeLayer(s.markers[busId]); delete s.markers[busId]; }
+  }
+}
+setInterval(refreshBuses, 3000);
+// disable the smooth animation while zooming, otherwise buses "slide" after a zoom
+map.on('zoomstart', () => map.getContainer().classList.add('no-anim'));
+map.on('zoomend', () => setTimeout(() => map.getContainer().classList.remove('no-anim'), 50));
+
+// ---- Marks ----
+async function loadMarks() {
+  marksLayer.clearLayers();
+  if (!document.getElementById('marksToggle').checked) return;
+  const cat = document.getElementById('categoryFilter').value;
+  const {marks} = await (await fetch('/api/marks/?category=' + cat)).json();
+  marks.forEach(m => L.marker([m.lat, m.lng], {icon: L.divIcon({className: '', iconSize: [28, 28], html: `<div class="mark-icon">${esc(m.icon)}</div>`})})
+    .bindPopup(`<b>${esc(m.title)}</b><br><small>${esc(m.category)} · ${esc(m.owner)}</small>
+      ${m.description ? '<p>' + esc(m.description) + '</p>' : ''}
+      <a href="/marks/${m.id}/">Details</a>${m.can_edit ? ` · <a href="/marks/${m.id}/edit/">Edit</a>` : ''}`)
+    .addTo(marksLayer));
+}
+document.getElementById('marksToggle').onchange = loadMarks;
+document.getElementById('categoryFilter').onchange = loadMarks;
+
+// ---- Map click: create a mark (logged-in users only) ----
+map.on('click', e => {
+  if (!IS_AUTH) return;
+  const {lat, lng} = e.latlng;
+  L.popup().setLatLng(e.latlng)
+    .setContent(`<a class="btn small" href="/marks/new/?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}">+ Add a mark here</a>`)
+    .openOn(map);
+});
+
+// ---- Mobile panel: collapse / expand ----
+document.getElementById('panelToggle').onclick = () => {
+  document.getElementById('panel').classList.toggle('collapsed');
+  setTimeout(() => map.invalidateSize(), 250);
+};
+
+loadRoutes(); loadMarks();
+</script>
+{% endblock %}

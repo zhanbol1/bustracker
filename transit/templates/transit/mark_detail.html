@@ -1,0 +1,20 @@
+{% extends "transit/base.html" %}
+{% block title %}{{ mark.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ mark.category.icon }} {{ mark.title }}</h1>
+  {% if can_edit %}<div>
+    <a class="btn" href="{% url 'mark_update' mark.pk %}">Edit</a>
+    <a class="btn danger" href="{% url 'mark_delete' mark.pk %}">Delete</a>
+  </div>{% endif %}
+</div>
+<p class="meta">{{ mark.category.name }} · by {{ mark.owner.username }} · {{ mark.created_at|date:"d.m.Y H:i" }}</p>
+{% if mark.description %}<p>{{ mark.description|linebreaksbr }}</p>{% endif %}
+<div id="map" class="mini-map"></div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const map = makeMap('map', 16); const p = [{{ mark.lat|stringformat:"f" }}, {{ mark.lng|stringformat:"f" }}];
+  map.setView(p, 16); L.marker(p).addTo(map);
+</script>
+{% endblock %}

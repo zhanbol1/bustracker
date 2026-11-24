@@ -1,0 +1,25 @@
+{% extends "transit/base.html" %}
+{% block title %}Route {{ route.number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1><span class="route-num" style="background:{{ route.color }}">{{ route.number }}</span> {{ route.name }}</h1>
+  {% if user.is_staff %}<div>
+    <a class="btn" href="{% url 'route_update' route.pk %}">Edit</a>
+    <a class="btn danger" href="{% url 'route_delete' route.pk %}">Delete</a></div>{% endif %}
+</div>
+<div class="two-col">
+  <div><h2>Stops</h2>
+    <ol>{% for s in stops %}<li>{{ s.name }}</li>{% empty %}<p class="empty">No stops added.</p>{% endfor %}</ol>
+    <h2>Buses</h2>
+    <ul>{% for b in route.buses.all %}<li>{{ b.plate }}{% if not b.is_active %} (not in service){% endif %}</li>{% empty %}<p class="empty">No buses.</p>{% endfor %}</ul>
+  </div>
+  <div id="map" class="mini-map"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ route.path|json_script:"path" }}
+<script>
+  const map = makeMap('map'); const path = JSON.parse(document.getElementById('path').textContent);
+  if (path.length > 1) map.fitBounds(L.polyline(path, {color: '{{ route.color }}', weight: 5}).addTo(map).getBounds(), {padding: [20, 20]});
+</script>
+{% endblock %}

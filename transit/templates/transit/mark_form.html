@@ -1,0 +1,21 @@
+{% extends "transit/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form two-col">{% csrf_token %}
+  <div>{% include "transit/_form_fields.html" %}
+    <button class="btn">Save</button>
+  </div>
+  <div><p class="hint">Click the map to choose or change the location.</p><div id="map" class="mini-map"></div></div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  const lat = document.getElementById('id_lat'), lng = document.getElementById('id_lng');
+  const map = makeMap('map', 15); let marker = null;
+  function place(ll) { marker ? marker.setLatLng(ll) : marker = L.marker(ll).addTo(map);
+    lat.value = ll.lat.toFixed(6); lng.value = ll.lng.toFixed(6); }
+  if (lat.value && lng.value) { const ll = L.latLng(+lat.value, +lng.value); place(ll); map.setView(ll, 16); }
+  map.on('click', e => place(e.latlng));
+</script>
+{% endblock %}

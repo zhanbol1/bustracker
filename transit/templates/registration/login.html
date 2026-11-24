@@ -1,0 +1,13 @@
+{% extends "transit/base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1>Log in</h1>
+  <form method="post" class="form">{% csrf_token %}
+    {% include "transit/_form_fields.html" %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn">Log in</button>
+  </form>
+  <p>No account? <a href="{% url 'signup' %}">Sign up</a></p>
+</div>
+{% endblock %}
