@@ -107,6 +107,8 @@ body.fullscreen { height: 100vh; height: 100dvh; overflow: hidden; }
   background: none; cursor: pointer; padding: 10px 8px; flex-direction: column; justify-content: space-between; }
 .nav-toggle span { display: block; height: 2px; background: var(--text); border-radius: 2px; transition: transform .2s, opacity .2s; }
 .nav-toggle:focus-visible { outline: 2px solid var(--accent); }
+/* keep Leaflet's z-indexes (controls use 1000) inside the map so the open menu stays on top */
+.map-layout { isolation: isolate; }
 @media (max-width: 768px) {
   .nav-toggle { display: flex; }
   .topbar nav { display: none; position: absolute; top: var(--topbar-h); left: 0; right: 0; margin: 0;
