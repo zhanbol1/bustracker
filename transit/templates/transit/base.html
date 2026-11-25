@@ -10,13 +10,17 @@
 <body class="{% block body_class %}{% endblock %}">
 <header class="topbar">
   <a class="brand" href="{% url 'map' %}">🚌 BusTracker</a>
-  <nav>
-    <a href="{% url 'map' %}">Map</a>
-    <a href="{% url 'route_list' %}">Routes</a>
-    <a href="{% url 'mark_list' %}">Marks</a>
+  <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  {% with page=request.resolver_match.url_name %}
+  <nav id="site-nav">
+    <a href="{% url 'map' %}"{% if page == 'map' %} class="active" aria-current="page"{% endif %}>Map</a>
+    <a href="{% url 'route_list' %}"{% if page == 'route_list' or page == 'route_detail' %} class="active" aria-current="page"{% endif %}>Routes</a>
+    <a href="{% url 'mark_list' %}"{% if page == 'mark_list' or page == 'mark_detail' %} class="active" aria-current="page"{% endif %}>Marks</a>
     {% if user.is_authenticated %}
-      <a href="{% url 'my_marks' %}">My marks</a>
-      {% if user.is_staff %}<a href="{% url 'route_create' %}">+ Route</a>{% endif %}
+      <a href="{% url 'my_marks' %}"{% if page == 'my_marks' %} class="active" aria-current="page"{% endif %}>My marks</a>
+      {% if user.is_staff %}<a href="{% url 'route_create' %}"{% if page == 'route_create' %} class="active" aria-current="page"{% endif %}>+ Route</a>{% endif %}
       <form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}
         <button class="linklike">Log out ({{ user.username }}{% if user.is_staff %}, admin{% endif %})</button>
       </form>
@@ -25,6 +29,7 @@
       <a class="btn small" href="{% url 'signup' %}">Sign up</a>
     {% endif %}
   </nav>
+  {% endwith %}
 </header>
 {% if messages %}
   <div class="messages">{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}</div>
@@ -34,6 +39,15 @@
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // Phone menu: the button opens and closes the nav; Escape or a click outside closes it
+  (function () {
+    const bar = document.querySelector('.topbar'), btn = bar.querySelector('.nav-toggle');
+    const setOpen = (open) => { bar.classList.toggle('nav-open', open); btn.setAttribute('aria-expanded', open); };
+    btn.addEventListener('click', () => setOpen(!bar.classList.contains('nav-open')));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) setOpen(false); });
+  })();
+
   // Shared map setup: centred on Naryn, OpenStreetMap tiles
   window.makeMap = function (id, zoom) {
     const map = L.map(id).setView([41.4300, 75.9900], zoom || 14);
