@@ -10,8 +10,11 @@
 <body class="{% block body_class %}{% endblock %}">
 <header class="topbar">
   <a class="brand" href="{% url 'map' %}">🚌 BusTracker</a>
+  <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
   {% with page=request.resolver_match.url_name %}
-  <nav>
+  <nav id="site-nav">
     <a href="{% url 'map' %}"{% if page == 'map' %} class="active" aria-current="page"{% endif %}>Map</a>
     <a href="{% url 'route_list' %}"{% if page == 'route_list' or page == 'route_detail' %} class="active" aria-current="page"{% endif %}>Routes</a>
     <a href="{% url 'mark_list' %}"{% if page == 'mark_list' or page == 'mark_detail' %} class="active" aria-current="page"{% endif %}>Marks</a>
@@ -36,6 +39,15 @@
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // Phone menu: the button opens and closes the nav; Escape or a click outside closes it
+  (function () {
+    const bar = document.querySelector('.topbar'), btn = bar.querySelector('.nav-toggle');
+    const setOpen = (open) => { bar.classList.toggle('nav-open', open); btn.setAttribute('aria-expanded', open); };
+    btn.addEventListener('click', () => setOpen(!bar.classList.contains('nav-open')));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) setOpen(false); });
+  })();
+
   // Shared map setup: centred on Naryn, OpenStreetMap tiles
   window.makeMap = function (id, zoom) {
     const map = L.map(id).setView([41.4300, 75.9900], zoom || 14);
