@@ -27,6 +27,9 @@ Next time you only need to activate `venv` and run `python manage.py runserver`.
 
 Tests: `python manage.py test transit`
 
+Settings come from environment variables: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` (`1` by default, set `0`
+in production) and `DJANGO_ALLOWED_HOSTS` (comma-separated). The defaults are fine for local work.
+
 ## Structure
 
 ```
@@ -34,7 +37,8 @@ config/                   settings and root URLs
 transit/
   models.py               Route, Stop, RouteStop, Bus, BusPosition, MarkCategory, Mark
   forms.py                SignUpForm, MarkForm, RouteForm
-  views.py                pages + JSON API for the map
+  views/                  one module per feature: map, api, marks, routes, auth
+  tests/                  one test file per feature (base.py holds shared fixtures)
   services/
     geo.py                distance_m(), Polyline class
     location.py           LocationProvider (ABC) → MockProvider, DriverGPSProvider
