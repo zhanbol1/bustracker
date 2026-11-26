@@ -54,6 +54,12 @@ class Stop(TimeStampedModel):
     lat = models.FloatField()
     lng = models.FloatField()
 
+    class Meta:
+        constraints = [
+            # the same stop is shared by routes instead of being stored twice
+            models.UniqueConstraint(fields=["name", "lat", "lng"], name="unique_stop_name_location"),
+        ]
+
     def __str__(self):
         return self.name
 
@@ -138,3 +144,5 @@ class BusPosition(models.Model):
 
     class Meta:
         ordering = ["-recorded_at"]
+        # the latest position of a bus is read on every map refresh
+        indexes = [models.Index(fields=["bus", "recorded_at"], name="busposition_bus_time_idx")]
