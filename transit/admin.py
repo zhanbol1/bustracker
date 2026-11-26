@@ -16,8 +16,9 @@ class RouteAdmin(admin.ModelAdmin):
 
 @admin.register(Bus)
 class BusAdmin(admin.ModelAdmin):
-    list_display = ["plate", "route", "is_active"]
+    list_display = ["plate", "route", "driver", "is_active"]
     list_filter = ["route", "is_active"]
+    search_fields = ["plate", "driver__username"]
 
 
 @admin.register(Mark)
