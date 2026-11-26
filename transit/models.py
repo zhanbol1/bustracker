@@ -54,6 +54,12 @@ class Stop(TimeStampedModel):
     lat = models.FloatField()
     lng = models.FloatField()
 
+    class Meta:
+        constraints = [
+            # the same stop is shared by routes instead of being stored twice
+            models.UniqueConstraint(fields=["name", "lat", "lng"], name="unique_stop_name_location"),
+        ]
+
     def __str__(self):
         return self.name
 
@@ -79,6 +85,11 @@ class Bus(TimeStampedModel):
     route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name="buses")
     plate = models.CharField("Plate number", max_length=15, unique=True)
     is_active = models.BooleanField("In service", default=True)
+    # One driver drives one bus; the database enforces it with a unique column
+    driver = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="bus", verbose_name="Driver",
+    )
     # Mock bus offset along the route (0..1) so buses do not overlap
     mock_offset = models.FloatField(
         default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
@@ -133,3 +144,5 @@ class BusPosition(models.Model):
 
     class Meta:
         ordering = ["-recorded_at"]
+        # the latest position of a bus is read on every map refresh
+        indexes = [models.Index(fields=["bus", "recorded_at"], name="busposition_bus_time_idx")]
