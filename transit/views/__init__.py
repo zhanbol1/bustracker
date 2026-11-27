@@ -1,5 +1,7 @@
 """Views split by feature. Names are re-exported so urls.py can keep using views.<name>."""
-from .api import api_marks, api_route_buses, api_route_detail, api_routes  # noqa: F401
+from .api import (  # noqa: F401
+    api_bus_position, api_marks, api_route_buses, api_route_detail, api_routes,
+)
 from .auth import signup  # noqa: F401
 from .map import map_view  # noqa: F401
 from .marks import (  # noqa: F401
