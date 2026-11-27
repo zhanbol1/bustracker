@@ -22,3 +22,10 @@ class NavigationTests(Base):
         self.client.login(username="adm", password="pass12345")
         r = self.client.get(reverse("route_create"))
         self.assertContains(r, f'<a href="{reverse("route_create")}" class="active" aria-current="page">+ Route</a>', html=True)
+
+    def test_buses_link_only_for_staff(self):
+        self.client.login(username="u1", password="pass12345")
+        self.assertNotContains(self.client.get(reverse("map")), f'href="{reverse("bus_list")}"')
+        self.client.login(username="adm", password="pass12345")
+        r = self.client.get(reverse("bus_list"))
+        self.assertContains(r, f'<a href="{reverse("bus_list")}" class="active" aria-current="page">Buses</a>', html=True)
