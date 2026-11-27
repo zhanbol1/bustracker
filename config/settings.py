@@ -133,3 +133,6 @@ LOGOUT_REDIRECT_URL = 'map'
 # OpenStreetMap blocks tile requests without a Referer header. Django's default "same-origin"
 # policy strips it for cross-site requests, so send the origin (not the full URL) instead.
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# Where bus positions come from: "mock" (simulated buses on their route) or "gps" (driver phones)
+LOCATION_SOURCE = os.environ.get("LOCATION_SOURCE", "mock")
