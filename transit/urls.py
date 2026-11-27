@@ -25,6 +25,8 @@ urlpatterns = [
     path("routes/<int:pk>/delete/", views.route_delete, name="route_delete"),
     # Buses (admin only)
     path("buses/", views.bus_list, name="bus_list"),
+    path("buses/new/", views.bus_edit, name="bus_create"),
+    path("buses/<int:pk>/edit/", views.bus_edit, name="bus_update"),
     # Sign-up
     path("signup/", views.signup, name="signup"),
 ]

@@ -1,0 +1,10 @@
+{% extends "transit/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form auth-box">{% csrf_token %}
+  {% include "transit/_form_fields.html" %}
+  <button class="btn">Save</button>
+  <a class="btn ghost" href="{% url 'bus_list' %}">Cancel</a>
+</form>
+{% endblock %}
