@@ -3,6 +3,7 @@ from .api import (  # noqa: F401
     api_bus_position, api_marks, api_route_buses, api_route_detail, api_routes,
 )
 from .auth import signup  # noqa: F401
+from .buses import bus_delete, bus_edit, bus_list  # noqa: F401
 from .map import map_view  # noqa: F401
 from .marks import (  # noqa: F401
     mark_create, mark_delete, mark_detail, mark_list, mark_update, my_marks,

@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Mark, Route, validate_in_city
+from .models import Bus, Mark, Route, validate_in_city
 
 
 class SignUpForm(UserCreationForm):
@@ -73,3 +73,21 @@ class RouteForm(forms.ModelForm):
                 raise forms.ValidationError("Every stop needs a name.")
             validate_in_city(s["lat"], s["lng"])
         return stops
+
+
+class BusForm(forms.ModelForm):
+    """Bus form for admins. The driver list shows only users who don't drive another bus."""
+
+    class Meta:
+        model = Bus
+        fields = ["plate", "route", "driver", "is_active"]
+        help_texts = {"driver": "Only users who don't drive another bus are listed."}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        free = User.objects.filter(is_active=True, bus__isnull=True)
+        if self.instance.driver_id:
+            free = free | User.objects.filter(pk=self.instance.driver_id)
+        self.fields["driver"].queryset = free.order_by("username")
+        self.fields["driver"].label_from_instance = lambda u: u.username
+        self.fields["driver"].empty_label = "— no driver —"

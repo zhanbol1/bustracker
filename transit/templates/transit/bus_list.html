@@ -1,0 +1,24 @@
+{% extends "transit/base.html" %}
+{% block title %}Buses{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Buses</h1>
+  <a class="btn" href="{% url 'bus_create' %}">+ New bus</a></div>
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Plate number or driver">
+  <select name="route">
+    <option value="">All routes</option>
+    {% for r in routes %}<option value="{{ r.id }}" {% if route_id == r.id|stringformat:"s" %}selected{% endif %}>#{{ r.number }} {{ r.name }}</option>{% endfor %}
+  </select>
+  <button class="btn">Search</button>
+</form>
+<div class="cards">
+{% for b in buses %}
+  <a class="card" href="{% url 'bus_update' b.pk %}">
+    <div class="route-num" style="background:{{ b.route.color }}">{{ b.route.number }}</div>
+    <div><b>{{ b.plate }}</b><br>
+      <small>{% if b.driver %}Driver: {{ b.driver.username }}{% else %}No driver{% endif %}{% if not b.is_active %} · not in service{% endif %}</small>
+    </div>
+  </a>
+{% empty %}<p class="empty">{% if q or route_id %}No buses match your search.{% else %}No buses yet.{% endif %}</p>{% endfor %}
+</div>
+{% endblock %}
