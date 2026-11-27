@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from ..forms import BusForm
 from ..models import Bus, Route
@@ -34,3 +35,13 @@ def bus_edit(request, pk=None):
         return redirect("bus_list")
     return render(request, "transit/bus_form.html",
                   {"form": form, "bus": bus, "title": f"Edit bus {bus.plate}" if pk else "New bus"})
+
+
+@staff_required
+def bus_delete(request, pk):
+    bus = get_object_or_404(Bus, pk=pk)
+    if request.method == "POST":
+        bus.delete()
+        messages.success(request, f"Bus {bus.plate} deleted.")
+        return redirect("bus_list")
+    return render(request, "transit/confirm_delete.html", {"obj": bus, "cancel_url": reverse("bus_update", args=[pk])})

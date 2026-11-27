@@ -6,5 +6,6 @@
   {% include "transit/_form_fields.html" %}
   <button class="btn">Save</button>
   <a class="btn ghost" href="{% url 'bus_list' %}">Cancel</a>
+  {% if bus.pk %}<a class="btn danger" href="{% url 'bus_delete' bus.pk %}">Delete</a>{% endif %}
 </form>
 {% endblock %}
