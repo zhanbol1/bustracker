@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/routes/<int:pk>/", views.api_route_detail, name="api_route_detail"),
     path("api/routes/<int:pk>/buses/", views.api_route_buses, name="api_route_buses"),
     path("api/marks/", views.api_marks, name="api_marks"),
+    path("api/buses/<int:pk>/position/", views.api_bus_position, name="api_bus_position"),
     # Marks
     path("marks/", views.mark_list, name="mark_list"),
     path("marks/mine/", views.my_marks, name="my_marks"),
