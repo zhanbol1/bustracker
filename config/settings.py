@@ -129,3 +129,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'map'
 LOGOUT_REDIRECT_URL = 'map'
+
+# OpenStreetMap blocks tile requests without a Referer header. Django's default "same-origin"
+# policy strips it for cross-site requests, so send the origin (not the full URL) instead.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
