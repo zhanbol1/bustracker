@@ -51,8 +51,10 @@
   // Shared map setup: centred on Naryn, OpenStreetMap tiles
   window.makeMap = function (id, zoom) {
     const map = L.map(id).setView([41.4300, 75.9900], zoom || 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap'
+    // one host, as the OSM tile policy asks; the {s} subdomains are deprecated
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     return map;
   };
