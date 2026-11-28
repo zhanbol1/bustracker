@@ -35,6 +35,10 @@ class LocationProvider(ABC):
     def get_position(self, bus):
         """Return a BusLocation for the bus, or None if there is no position."""
 
+    def is_moving_forward(self, bus):
+        """True if the bus moves from the first point of its route line towards the last."""
+        return True
+
     def get_positions(self, buses):
         result = []
         for bus in buses:
@@ -53,12 +57,19 @@ class MockProvider(LocationProvider):
         self.speed_ms = speed_kmh / 3.6
         self._clock = clock  # can be replaced in tests
 
+    def _phase(self, bus, line):
+        """0..0.5 = driving forward along the line, 0.5..1 = driving back."""
+        cycle_s = 2 * line.length_m / self.speed_ms  # there and back
+        return (self._clock() / cycle_s + bus.mock_offset) % 1.0
+
+    def is_moving_forward(self, bus):
+        return len(bus.route.path) < 2 or self._phase(bus, Polyline(bus.route.path)) < 0.5
+
     def get_position(self, bus):
         if not bus.is_active or len(bus.route.path) < 2:
             return None
         line = Polyline(bus.route.path)
-        cycle_s = 2 * line.length_m / self.speed_ms  # there and back
-        phase = (self._clock() / cycle_s + bus.mock_offset) % 1.0
+        phase = self._phase(bus, line)
         fraction = phase * 2 if phase < 0.5 else 2 - phase * 2
         lat, lng = line.point_at(fraction)
         return BusLocation(bus.id, bus.plate, lat, lng, online=True, source=self.source_name)
@@ -76,3 +87,11 @@ class DriverGPSProvider(LocationProvider):
             return None
         online = timezone.now() - last.recorded_at <= self.OFFLINE_AFTER
         return BusLocation(bus.id, bus.plate, last.lat, last.lng, online, self.source_name)
+
+    def is_moving_forward(self, bus):
+        last_two = list(bus.positions.all()[:2])
+        if len(last_two) < 2 or len(bus.route.path) < 2:
+            return True
+        line = Polyline(bus.route.path)
+        newer, older = (line.locate(p.lat, p.lng) for p in last_two)
+        return newer >= older
