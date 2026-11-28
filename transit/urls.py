@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/routes/", views.api_routes, name="api_routes"),
     path("api/routes/<int:pk>/", views.api_route_detail, name="api_route_detail"),
     path("api/routes/<int:pk>/buses/", views.api_route_buses, name="api_route_buses"),
+    path("api/routes/<int:pk>/stops/<int:stop_id>/eta/", views.api_stop_eta, name="api_stop_eta"),
     path("api/marks/", views.api_marks, name="api_marks"),
     path("api/buses/<int:pk>/position/", views.api_bus_position, name="api_bus_position"),
     # Marks

@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from .eta import ETACalculator  # noqa: F401
 from .location import DriverGPSProvider, LocationProvider, MockProvider  # noqa: F401
 from .marks import MarkService  # noqa: F401
 from .tracking import BusTrackingService  # noqa: F401
