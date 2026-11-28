@@ -39,3 +39,20 @@ class Polyline:
                 return (lat1 + (lat2 - lat1) * t, lng1 + (lng2 - lng1) * t)
             walked += seg
         return self.points[-1]
+
+    def locate(self, lat, lng):
+        """Distance in metres along the line to the line's closest point to (lat, lng)."""
+        best_gap, best_along, walked = None, 0.0, 0.0
+        for i, seg in enumerate(self._segments):
+            (lat1, lng1), (lat2, lng2) = self.points[i], self.points[i + 1]
+            # flat projection is accurate enough inside one city
+            kx = math.cos(math.radians(lat1))
+            dx, dy = (lng2 - lng1) * kx, lat2 - lat1
+            px, py = (lng - lng1) * kx, lat - lat1
+            seg2 = dx * dx + dy * dy
+            t = 0.0 if seg2 == 0 else min(max((px * dx + py * dy) / seg2, 0.0), 1.0)
+            gap = distance_m(lat, lng, lat1 + (lat2 - lat1) * t, lng1 + (lng2 - lng1) * t)
+            if best_gap is None or gap < best_gap:
+                best_gap, best_along = gap, walked + t * seg
+            walked += seg
+        return best_along

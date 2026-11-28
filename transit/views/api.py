@@ -6,8 +6,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 
-from ..models import Bus, Route
-from ..services import BusTrackingService, location_provider
+from ..models import Bus, Route, Stop
+from ..services import BusTrackingService, ETACalculator, location_provider
 from .marks import filter_marks
 from .routes import search_routes
 
@@ -23,7 +23,7 @@ def api_route_detail(request, pk):
     r = get_object_or_404(Route, pk=pk, is_active=True)
     return JsonResponse({
         "id": r.id, "number": r.number, "name": r.name, "color": r.color, "path": r.path,
-        "stops": [{"name": s.name, "lat": s.lat, "lng": s.lng} for s in r.ordered_stops()],
+        "stops": [{"id": s.id, "name": s.name, "lat": s.lat, "lng": s.lng} for s in r.ordered_stops()],
     })
 
 
@@ -63,3 +63,14 @@ def api_bus_position(request, pk):
         "bus": bus.id, "plate": bus.plate, "lat": pos.lat, "lng": pos.lng,
         "recorded_at": pos.recorded_at.isoformat(),
     }, status=201)
+
+
+def api_stop_eta(request, pk, stop_id):
+    """When the next buses of a route reach one of its stops, soonest first."""
+    route = get_object_or_404(Route, pk=pk, is_active=True)
+    stop = get_object_or_404(Stop, pk=stop_id, route_stops__route=route)
+    arrivals = ETACalculator(route, location_provider).arrivals(stop)
+    return JsonResponse({
+        "route": route.id, "stop": {"id": stop.id, "name": stop.name},
+        "arrivals": [a.to_dict() for a in arrivals],
+    })
