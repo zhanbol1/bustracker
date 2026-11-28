@@ -123,3 +123,13 @@ body.fullscreen { height: 100vh; height: 100dvh; overflow: hidden; }
   .topbar.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
   .topbar.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
 }
+
+/* ---- Driver page ---- */
+.driver { max-width: 520px; margin: 0 auto; }
+.driver-buttons { margin: 20px 0 12px; }
+.driver-buttons .btn { width: 100%; padding: 16px; font-size: 1.15rem; border-radius: 12px; }
+.driver-status { padding: 12px 14px; border-radius: 8px; background: #eef1f5; }
+.driver-status.ok { background: #dcfce7; color: #14532d; }
+.driver-status.wait { background: #e0ecff; }
+.driver-status.warn { background: #fef3c7; color: #78350f; }
+.driver-status.error { background: #fee2e2; color: #7f1d1d; }
