@@ -20,6 +20,7 @@
     <a href="{% url 'mark_list' %}"{% if page == 'mark_list' or page == 'mark_detail' %} class="active" aria-current="page"{% endif %}>Marks</a>
     {% if user.is_authenticated %}
       <a href="{% url 'my_marks' %}"{% if page == 'my_marks' %} class="active" aria-current="page"{% endif %}>My marks</a>
+      {% if user.bus %}<a href="{% url 'driver' %}"{% if page == 'driver' %} class="active" aria-current="page"{% endif %}>Driver</a>{% endif %}
       {% if user.is_staff %}
         <a href="{% url 'bus_list' %}"{% if page == 'bus_list' or page == 'bus_create' or page == 'bus_update' %} class="active" aria-current="page"{% endif %}>Buses</a>
         <a href="{% url 'route_create' %}"{% if page == 'route_create' %} class="active" aria-current="page"{% endif %}>+ Route</a>
