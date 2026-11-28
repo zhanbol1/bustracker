@@ -1,0 +1,18 @@
+{% extends "transit/base.html" %}
+{% load static %}
+{% block title %}Driver{% endblock %}
+{% block content %}
+<div id="driver" class="driver"
+     data-url="{% url 'api_bus_position' bus.pk %}" data-csrf="{{ csrf_token }}">
+  <h1><span class="route-num" style="background:{{ bus.route.color }}">{{ bus.route.number }}</span> {{ bus.plate }}</h1>
+  <p class="meta">{{ bus.route.name }}{% if not bus.is_active %} · <b>not in service</b>, so passengers won't see this bus{% endif %}</p>
+
+  <div class="driver-buttons">
+    <button type="button" class="btn" id="startBtn">Start sharing</button>
+    <button type="button" class="btn danger" id="stopBtn" hidden>Stop sharing</button>
+  </div>
+  <p id="status" class="driver-status" role="status" aria-live="polite">Not sharing. Press Start when you begin the route.</p>
+  <p id="lastPoint" class="hint"></p>
+  <p class="hint">Keep this page open while driving. Your position is sent every 5 seconds.</p>
+</div>
+{% endblock %}
