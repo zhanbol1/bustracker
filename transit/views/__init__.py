@@ -4,6 +4,7 @@ from .api import (  # noqa: F401
 )
 from .auth import signup  # noqa: F401
 from .buses import bus_delete, bus_edit, bus_list  # noqa: F401
+from .driver import driver_page  # noqa: F401
 from .map import map_view  # noqa: F401
 from .marks import (  # noqa: F401
     mark_create, mark_delete, mark_detail, mark_list, mark_update, my_marks,

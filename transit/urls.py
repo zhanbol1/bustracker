@@ -24,6 +24,8 @@ urlpatterns = [
     path("routes/<int:pk>/", views.route_detail, name="route_detail"),
     path("routes/<int:pk>/edit/", views.route_edit, name="route_update"),
     path("routes/<int:pk>/delete/", views.route_delete, name="route_delete"),
+    # Driver page
+    path("driver/", views.driver_page, name="driver"),
     # Buses (admin only)
     path("buses/", views.bus_list, name="bus_list"),
     path("buses/new/", views.bus_edit, name="bus_create"),
