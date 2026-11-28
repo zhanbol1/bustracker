@@ -128,6 +128,7 @@ body.fullscreen { height: 100vh; height: 100dvh; overflow: hidden; }
 .driver { max-width: 520px; margin: 0 auto; }
 .driver-buttons { margin: 20px 0 12px; }
 .driver-buttons .btn { width: 100%; padding: 16px; font-size: 1.15rem; border-radius: 12px; }
+.driver-buttons .btn[hidden] { display: none; }  /* .btn sets display, which would override [hidden] */
 .driver-status { padding: 12px 14px; border-radius: 8px; background: #eef1f5; }
 .driver-status.ok { background: #dcfce7; color: #14532d; }
 .driver-status.wait { background: #e0ecff; }
